@@ -7,8 +7,10 @@ import javax.swing.table.DefaultTableModel;
 
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
+import java.awt.event.*;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -35,6 +37,7 @@ public class Main implements ActionListener{
 	private double expectedIncomeTax = 0.00;
 	private int totalMileage=0;
 	
+	private JFrame mainFrame;
 	private JLabel earningsLabel;
 	private JLabel timeWorked;
 	private JLabel grossWage;
@@ -53,6 +56,7 @@ public class Main implements ActionListener{
 	private JButton submit;
 	private JTable shiftTable;
 	private JButton delete;
+	private JMenuItem newForm;
 	private JMenuItem save;
 	private JMenuItem load;
 	private Timer timer;
@@ -60,7 +64,7 @@ public class Main implements ActionListener{
 	
 	
 	public Main() {
-		JFrame mainFrame = new JFrame("DoorDash Data Tracker v"+Main.versionId);
+		mainFrame = new JFrame("DoorDash Data Tracker v"+Main.versionId);
 		//Panels
 		JPanel mainPanel = new JPanel();
 		
@@ -131,10 +135,13 @@ public class Main implements ActionListener{
 		//Menu Panel Config
 		JMenuBar jmb = new JMenuBar();
 		JMenu file = new JMenu("File");
+		this.newForm = new JMenuItem("New");
 		this.save = new JMenuItem("Save");
 		this.load = new JMenuItem("Load");
+		this.newForm.addActionListener(this);
 		this.save.addActionListener(this);
 		this.load.addActionListener(this);
+		file.add(this.newForm);
 		file.add(this.save);
 		file.add(this.load);
 		jmb.add(file);
@@ -568,6 +575,22 @@ public class Main implements ActionListener{
 		else if(e.getSource().equals(this.timer)) {
 			save();
 		}
+		else if(e.getSource().equals(this.newForm)) {
+			createNewForm();
+		}
+	}
+	
+	private void createNewForm() {
+		this.mainFrame.setVisible(false);
+		JFrame newFormFrame = new JFrame();
+		newFormFrame.setSize(new Dimension(100,200));
+		newFormFrame.addWindowListener(new WindowAdapter(){
+
+			public void windowClosing(WindowEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 	}
 	
 	private void load() {
