@@ -179,7 +179,7 @@ public class Main implements ActionListener{
 		
 		//Tabbed Pane Config
 		fdPane.addTab("Trip", formPanel);
-		fdPane.addTab("Data",dataPanel);
+		fdPane.addTab("Shifts",dataPanel);
 		
 		//Form Panel Config
 		GridBagConstraints gbc = new GridBagConstraints();
