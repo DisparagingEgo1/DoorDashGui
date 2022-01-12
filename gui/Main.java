@@ -584,11 +584,14 @@ public class Main implements ActionListener{
 		this.mainFrame.setVisible(false);
 		JFrame newFormFrame = new JFrame();
 		newFormFrame.setSize(new Dimension(100,200));
+		newFormFrame.setVisible(true);
+		newFormFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		newFormFrame.add(this.mainFrame);
 		newFormFrame.addWindowListener(new WindowAdapter(){
-
+			
 			public void windowClosing(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
+				((JFrame)((JFrame)e.getWindow()).getComponents()[0]).setVisible(true);
+				//this.dispose();
 			}
 		});
 	}
