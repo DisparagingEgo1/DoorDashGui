@@ -94,7 +94,7 @@ public class Main implements ActionListener{
 		
 		JTabbedPane fdPane = new JTabbedPane();
 		
-		//Data Panel Config
+		//Shifts Panel Config
 		dataPanel.setLayout(new BorderLayout());
 		String[]columnNames = {"","Date", "Start Time", "End Time", "Earnings"};
 		DefaultTableModel model = new DefaultTableModel(356, 5);
@@ -265,15 +265,15 @@ public class Main implements ActionListener{
 		
 		//Frame Config and Initialize
 		ImageIcon img = new ImageIcon("doordash.png");
-		mainFrame.setIconImage(img.getImage());
-		mainFrame.setSize(new Dimension(700,350));
-		mainFrame.setResizable(false);
-		mainFrame.setLocationRelativeTo(null);
-		mainFrame.add(mainPanel);
+		this.mainFrame.setIconImage(img.getImage());
+		this.mainFrame.setSize(new Dimension(700,350));
+		this.mainFrame.setResizable(false);
+		this.mainFrame.setLocationRelativeTo(null);
+		this.mainFrame.add(mainPanel);
 		this.timer = new Timer(60000,this);
 		this.timer.start();
-		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		mainFrame.setVisible(true);
+		this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.mainFrame.setVisible(true);
 		initialize();
 		
 	}
@@ -567,6 +567,7 @@ public class Main implements ActionListener{
 			}
 		}
 		else if(e.getSource().equals(this.save)) {
+			this.timer.restart();
 			save();
 		}
 		else if(e.getSource().equals(this.load)) {
@@ -583,17 +584,15 @@ public class Main implements ActionListener{
 	private void createNewForm() {
 		this.mainFrame.setVisible(false);
 		JFrame newFormFrame = new JFrame();
-		newFormFrame.setSize(new Dimension(100,200));
+		ImageIcon img = new ImageIcon("doordash.png");
+		newFormFrame.setIconImage(img.getImage());
+		newFormFrame.setSize(new Dimension(200,350));
+		newFormFrame.setResizable(false);
+		newFormFrame.setLocationRelativeTo(this.mainFrame);
 		newFormFrame.setVisible(true);
 		newFormFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		newFormFrame.add(this.mainFrame);
-		newFormFrame.addWindowListener(new WindowAdapter(){
-			
-			public void windowClosing(WindowEvent e) {
-				((JFrame)((JFrame)e.getWindow()).getComponents()[0]).setVisible(true);
-				//this.dispose();
-			}
-		});
+		newFormFrame.addWindowListener(new CustomWindowListener(this.mainFrame,newFormFrame));
+		
 	}
 	
 	private void load() {
