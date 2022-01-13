@@ -59,9 +59,7 @@ public class Main implements ActionListener{
 	private JMenuItem newForm;
 	private JMenuItem save;
 	private JMenuItem load;
-	private Timer timer;
-	
-	
+	private Timer timer;	
 	
 	public Main() {
 		mainFrame = new JFrame("DoorDash Data Tracker v"+Main.versionId);
@@ -579,19 +577,58 @@ public class Main implements ActionListener{
 		else if(e.getSource().equals(this.newForm)) {
 			createNewForm();
 		}
+		
 	}
 	
 	private void createNewForm() {
 		this.mainFrame.setVisible(false);
 		JFrame newFormFrame = new JFrame();
+		
+		JPanel formMainPanel = new JPanel();
+		JPanel statePanel = new JPanel();
+		JPanel yearPanel = new JPanel();
+		JPanel firstNamePanel = new JPanel();
+		JPanel lastNamePanel = new JPanel();
+		
+		//First Name Panel Config
+		JLabel firstNameLabel = new JLabel("First Name:");
+		JTextField firstNameTextField = new JTextField(15);
+		firstNamePanel.add(firstNameLabel);
+		firstNamePanel.add(firstNameTextField);
+		//Last Name Panel Config
+		JLabel lastNameLabel = new JLabel("Last Name:");
+		JTextField lastNameTextField = new JTextField(15);
+		lastNamePanel.add(lastNameLabel);
+		lastNamePanel.add(lastNameTextField);
+		
+		//Form Main Panel Config
+		JButton formSubmit = new JButton("Submit");
+		formSubmit.addActionListener(new CustomActionListener(newFormFrame));
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.weightx = 0.1;
+		gbc.weighty = 0.1;
+		gbc.anchor = GridBagConstraints.NORTHWEST;
+		formMainPanel.setLayout(new GridBagLayout());
+		formMainPanel.add(firstNamePanel);
+		gbc.gridx = 1;
+		formMainPanel.add(lastNamePanel);
+		gbc.gridx = 0;
+		gbc.gridy = 1;
+		formMainPanel.add(formSubmit);
+		
+		//New Form Frame Config
+		newFormFrame.add(formMainPanel);
 		ImageIcon img = new ImageIcon("doordash.png");
 		newFormFrame.setIconImage(img.getImage());
-		newFormFrame.setSize(new Dimension(200,350));
+		newFormFrame.setSize(new Dimension(500,250));
 		newFormFrame.setResizable(false);
 		newFormFrame.setLocationRelativeTo(this.mainFrame);
-		newFormFrame.setVisible(true);
 		newFormFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		newFormFrame.addWindowListener(new CustomWindowListener(this.mainFrame,newFormFrame));
+		//newFormFrame.pack();
+		newFormFrame.setVisible(true);
 		
 	}
 	
