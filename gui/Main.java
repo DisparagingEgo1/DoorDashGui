@@ -8,16 +8,13 @@ import javax.swing.table.DefaultTableModel;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Scanner;
 
-public class Main implements ActionListener{
+public class Main implements ActionListener,FocusListener{
 	
 	
 	private final String SAVE_FILE = "data.txt";
@@ -577,12 +574,19 @@ public class Main implements ActionListener{
 		else if(e.getSource().equals(this.newForm)) {
 			createNewForm();
 		}
+		else if(e.getActionCommand().equals("stateComboBox")) {
+			System.out.println("State Combo Box Changed");
+		}
+		else if(e.getActionCommand().equals("yearTextField")) {
+			System.out.println("Year Text Field Changed");
+		}
+		
 		
 	}
 	
 	private void createNewForm() {
 		this.mainFrame.setVisible(false);
-		JFrame newFormFrame = new JFrame();
+		JFrame newFormFrame = new JFrame("DoorDash Data Tracker v"+Main.versionId);
 		
 		JPanel formMainPanel = new JPanel();
 		JPanel statePanel = new JPanel();
@@ -592,18 +596,42 @@ public class Main implements ActionListener{
 		
 		//First Name Panel Config
 		JLabel firstNameLabel = new JLabel("First Name:");
-		JTextField firstNameTextField = new JTextField(15);
+		JTextField firstNameTextField = new JTextField(10);
 		firstNamePanel.add(firstNameLabel);
 		firstNamePanel.add(firstNameTextField);
+		firstNameTextField.setName("firstNameTextField");
+		firstNameTextField.addFocusListener(this);
+		
 		//Last Name Panel Config
 		JLabel lastNameLabel = new JLabel("Last Name:");
-		JTextField lastNameTextField = new JTextField(15);
+		JTextField lastNameTextField = new JTextField(10);
 		lastNamePanel.add(lastNameLabel);
 		lastNamePanel.add(lastNameTextField);
+		lastNameTextField.setName("lastNameTextField");
+		lastNameTextField.addFocusListener(this);
+		
+		//State Panel Config
+		String[] states = {"","OR","WA"};
+		JLabel stateLabel = new JLabel("State");
+		JComboBox<String>stateComboBox = new JComboBox<String>(states);
+		stateComboBox.setSelectedIndex(0);
+		stateComboBox.setActionCommand("stateComboBox");
+		stateComboBox.addActionListener(this);
+		statePanel.add(stateLabel);
+		statePanel.add(stateComboBox);
+		
+		//Year Panel Config
+		JLabel yearLabel = new JLabel("Year:");
+		JTextField yearTextField = new JTextField(5);
+		yearTextField.setName("yearTextField");
+		yearTextField.addFocusListener(this);
+		yearPanel.add(yearLabel);
+		yearPanel.add(yearTextField);
 		
 		//Form Main Panel Config
 		JButton formSubmit = new JButton("Submit");
 		formSubmit.addActionListener(new CustomActionListener(newFormFrame));
+		//formSubmit.setEnabled(false);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -611,12 +639,18 @@ public class Main implements ActionListener{
 		gbc.weighty = 0.1;
 		gbc.anchor = GridBagConstraints.NORTHWEST;
 		formMainPanel.setLayout(new GridBagLayout());
-		formMainPanel.add(firstNamePanel);
+		formMainPanel.add(firstNamePanel,gbc);
 		gbc.gridx = 1;
-		formMainPanel.add(lastNamePanel);
+		formMainPanel.add(lastNamePanel,gbc);
 		gbc.gridx = 0;
 		gbc.gridy = 1;
-		formMainPanel.add(formSubmit);
+		formMainPanel.add(statePanel,gbc);
+		gbc.gridx = 1;
+		gbc.gridy = 1;
+		formMainPanel.add(yearPanel,gbc);
+		gbc.gridx = 0;
+		gbc.gridy = 2;
+		formMainPanel.add(formSubmit,gbc);
 		
 		//New Form Frame Config
 		newFormFrame.add(formMainPanel);
@@ -627,7 +661,7 @@ public class Main implements ActionListener{
 		newFormFrame.setLocationRelativeTo(this.mainFrame);
 		newFormFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		newFormFrame.addWindowListener(new CustomWindowListener(this.mainFrame,newFormFrame));
-		//newFormFrame.pack();
+		newFormFrame.pack();
 		newFormFrame.setVisible(true);
 		
 	}
@@ -679,5 +713,24 @@ public class Main implements ActionListener{
 	}
 	public static void main(String[] args) {
 		new Main();
+	}
+	@Override
+	public void focusGained(FocusEvent e) {
+		// TODO Auto-generated method stub
+	}
+	@Override
+	public void focusLost(FocusEvent e) {
+		// TODO Auto-generated method stub
+		if(e.getSource() instanceof JTextField) {
+			if(((JTextField)e.getSource()).getName().equals("yearTextField")) {
+				System.out.println("yearTextField lost focus");
+			}
+			else if(((JTextField)e.getSource()).getName().equals("firstNameTextField")) {
+				System.out.println("firstNameTextField lost focus");
+			}
+			else if(((JTextField)e.getSource()).getName().equals("lastNameTextField")) {
+				System.out.println("lastNameTextField lost focus");
+			}
+		}
 	}
 }
