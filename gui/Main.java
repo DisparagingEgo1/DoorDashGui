@@ -2,6 +2,7 @@ package gui;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
@@ -9,6 +10,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,7 +19,7 @@ import java.util.Scanner;
 public class Main implements ActionListener,FocusListener{
 	
 	
-	private final String SAVE_FILE = "data.txt";
+	private final String RESTORE_FILE = "temp.dd";
 	private final double SS_TAX_RATE = 0.153;
 	private final double MILE_RATE = 0.585;
 	private final double[][] INCOME_BRACKETS = new double [][] {{0.1,9950},{0.12,40525},{0.22,86375}};
@@ -33,6 +35,10 @@ public class Main implements ActionListener,FocusListener{
 	private double expectedSSTaxes = 0.00;
 	private double expectedIncomeTax = 0.00;
 	private int totalMileage=0;
+	private String userFirstName = "";
+	private String userLastName = "";
+	private String state = "";
+	private String year = "";
 	
 	private JFrame mainFrame;
 	private JLabel earningsLabel;
@@ -56,10 +62,12 @@ public class Main implements ActionListener,FocusListener{
 	private JMenuItem newForm;
 	private JMenuItem save;
 	private JMenuItem load;
-	private Timer timer;	
+	private Timer timer;
+	private ArrayList<String> newFormFields;
+	private JTabbedPane fdPane;
 	
 	public Main() {
-		mainFrame = new JFrame("DoorDash Data Tracker v"+Main.versionId);
+		this.mainFrame = new JFrame("DoorDash Data Tracker v"+Main.versionId);
 		//Panels
 		JPanel mainPanel = new JPanel();
 		
@@ -87,7 +95,7 @@ public class Main implements ActionListener,FocusListener{
 		JPanel dataPanel = new JPanel();
 		
 		
-		JTabbedPane fdPane = new JTabbedPane();
+		 this.fdPane = new JTabbedPane();
 		
 		//Shifts Panel Config
 		dataPanel.setLayout(new BorderLayout());
@@ -180,8 +188,8 @@ public class Main implements ActionListener,FocusListener{
 		statsPanel.add(milePanel);
 		
 		//Tabbed Pane Config
-		fdPane.addTab("Trip", formPanel);
-		fdPane.addTab("Shifts",dataPanel);
+		this.fdPane.addTab("Trip", formPanel);
+		this.fdPane.addTab("Shifts",dataPanel);
 		
 		//Form Panel Config
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -254,7 +262,9 @@ public class Main implements ActionListener,FocusListener{
 		
 		//Main Panel Config
 		mainPanel.setLayout(new BorderLayout());
-		mainPanel.add(fdPane,BorderLayout.CENTER);
+		//fdPane.setVisible(false);
+		mainPanel.add(this.fdPane,BorderLayout.CENTER);
+		this.fdPane.setVisible(false);
 		mainPanel.add(statsPanel,BorderLayout.LINE_END);
 		mainPanel.add(menuPanel,BorderLayout.PAGE_START);
 		
@@ -269,18 +279,20 @@ public class Main implements ActionListener,FocusListener{
 		this.timer.start();
 		this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.mainFrame.setVisible(true);
+		this.newFormFields = new ArrayList<String>(4);
+		for(int i = 1; i < 5; i++)this.newFormFields.add("");
 		initialize();
 		
 	}
 	private void initialize() {
 		this.shifts = new ArrayList<Shift>();
-		load();
+		load("");
 	}
 	private void update(final Shift s, final int mode) {
 		updateEarnings(s.getEarnings(),mode);
 		updateMileage(s.getStartMileage(),s.getEndMileage(),mode);
 		updateTime(s.getDuration(),mode);
-		updateTaxesAndWages(mode);
+		updateTaxesAndWages();
 		updateDataTable();
 		if(mode == 1) {
 			this.startMileage.setText("");
@@ -322,7 +334,7 @@ public class Main implements ActionListener,FocusListener{
 		}
 		
 	}
-	private void updateTaxesAndWages(final int mode) {
+	private void updateTaxesAndWages() {
 		if(this.hoursWorked!= 0 || this.minutesWorked!= 0)this.grossHourlyWage = (double)this.earning/(this.hoursWorked + (this.minutesWorked/60));
 		else this.grossHourlyWage = 0.00;
 		this.expectedSSTaxes = this.earning*this.SS_TAX_RATE;//deduct 7.65%, 58.5 cents per mile, standard deduction is 12,950
@@ -562,26 +574,78 @@ public class Main implements ActionListener,FocusListener{
 			}
 		}
 		else if(e.getSource().equals(this.save)) {
-			this.timer.restart();
-			save();
-		}
-		else if(e.getSource().equals(this.load)) {
+			if(this.fdPane.isVisible()) {
+				this.timer.restart();
+				this.mainFrame.setTitle("DoorDash Data Tracker v"+Main.versionId+ " -"+this.userFirstName + " "+this.userLastName + " "+this.year);
+				save();
+			}
+			else Toolkit.getDefaultToolkit().beep();
 			
 		}
+		else if(e.getSource().equals(this.load)) {
+			fileChooser();
+		}
 		else if(e.getSource().equals(this.timer)) {
-			save();
+			if(this.fdPane.isVisible()) {
+				this.mainFrame.setTitle("DoorDash Data Tracker v"+Main.versionId+ " -"+this.userFirstName + " "+this.userLastName + " "+this.year+ " (Autosaved)");
+				save();
+			}
 		}
 		else if(e.getSource().equals(this.newForm)) {
 			createNewForm();
 		}
 		else if(e.getActionCommand().equals("stateComboBox")) {
-			System.out.println("State Combo Box Changed");
+			this.newFormFields.set(2,(String)((JComboBox<String>)e.getSource()).getSelectedItem());
 		}
-		else if(e.getActionCommand().equals("yearTextField")) {
-			System.out.println("Year Text Field Changed");
+		else if(e.getActionCommand().equals("formSubmit")) {
+			if(checkNewFormFields()) {
+				this.userFirstName = this.newFormFields.get(0);
+				this.userLastName = this.newFormFields.get(1);
+				this.state = this.newFormFields.get(2);
+				this.year = this.newFormFields.get(3);
+				newForm();
+				for(int i = 0; i < 4; i++)this.newFormFields.set(i, "");
+			}
+			else {
+				Toolkit.getDefaultToolkit().beep();
+			}
 		}
-		
-		
+	}
+	
+	private void fileChooser() {
+		JFileChooser jfc = new JFileChooser();
+		jfc.setCurrentDirectory(new File(System.getProperty("user.dir")));
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("Door Dash User Files","user");
+		jfc.setFileFilter(filter);
+		if(jfc.showOpenDialog(this.mainFrame) == JFileChooser.APPROVE_OPTION) {
+			load(jfc.getSelectedFile().getAbsolutePath());
+		}
+	}
+	
+	private void newForm() {
+		this.mainFrame.setTitle("DoorDash Data Tracker v"+Main.versionId+ " -"+this.userFirstName + " "+this.userLastName + " "+this.year);
+		if(!this.fdPane.isVisible())this.fdPane.setVisible(true);
+		this.shifts = new ArrayList<Shift>();
+		this.earning = 0.00;
+		this.hoursWorked = 0;
+		this.minutesWorked = 0;
+		this.grossHourlyWage = 0.00;
+		this.netHourlyWage = 0.00;
+		this.expectedSSTaxes = 0.00;
+		this.expectedIncomeTax = 0.00;
+		this.totalMileage=0;
+		updateEarnings(this.earning,1);
+		updateMileage(0,0,1);
+		updateTime(0,1);
+		updateTaxesAndWages();
+		updateDataTable();
+	}
+	
+	private boolean checkNewFormFields() {
+		for(String s: this.newFormFields) {
+			if(s.equals("") || s.isEmpty())return false;
+		}
+		return true;
 	}
 	
 	private void createNewForm() {
@@ -630,7 +694,9 @@ public class Main implements ActionListener,FocusListener{
 		
 		//Form Main Panel Config
 		JButton formSubmit = new JButton("Submit");
-		formSubmit.addActionListener(new CustomActionListener(newFormFrame));
+		formSubmit.setActionCommand("formSubmit");
+		formSubmit.addActionListener(this);
+		formSubmit.addActionListener(new CustomActionListener(newFormFrame,this.newFormFields));
 		//formSubmit.setEnabled(false);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;
@@ -666,13 +732,54 @@ public class Main implements ActionListener,FocusListener{
 		
 	}
 	
-	private void load() {
+	private void load(final String fileName) {
+		if(this.shifts.size() > 0) {
+			this.shifts = new ArrayList<Shift>();
+			this.earning = 0.00;
+			this.hoursWorked = 0;
+			this.minutesWorked = 0;
+			this.grossHourlyWage = 0.00;
+			this.netHourlyWage = 0.00;
+			this.expectedSSTaxes = 0.00;
+			this.expectedIncomeTax = 0.00;
+			this.totalMileage=0;
+			updateEarnings(this.earning,1);
+			updateMileage(0,0,1);
+			updateTime(0,1);
+			updateTaxesAndWages();
+			updateDataTable();
+		}
 		try {
-			Scanner fin = new Scanner(new File(SAVE_FILE));
+			Scanner fin;
+			if(fileName.length() == 0) {
+				Scanner restore = new Scanner(new File(RESTORE_FILE));
+				fin = new Scanner(new File(restore.nextLine()));
+				restore.close();
+			}
+			else {
+				fin = new Scanner(new File(fileName));
+			}
 			String[]data = new String[6];
-			int index = 0;
+			int index = 0, count = 1;
 			while(fin.hasNextLine()) {
-				if(index == 6) {
+				if(count < 5) {
+					switch(count) {
+					case 1:
+						this.userFirstName = fin.nextLine();
+						break;
+					case 2:
+						this.userLastName = fin.nextLine();
+						break;
+					case 3:
+						this.state = fin.nextLine();
+						break;
+					case 4:
+						this.year = fin.nextLine();
+						break;
+					}
+					count++;
+				}
+				else if(index == 6) {
 					//final String date, final String startTime, final String endTime, final double earnings, final int startMileage, final int endMileage
 					shifts.add(new Shift(data[0],data[1],data[2], Double.parseDouble(data[3]),Integer.parseInt(data[4]),Integer.parseInt(data[5])));
 					update(shifts.get(shifts.size()-1),1);
@@ -688,14 +795,30 @@ public class Main implements ActionListener,FocusListener{
 			shifts.add(new Shift(data[0],data[1],data[2], Double.parseDouble(data[3]),Integer.parseInt(data[4]),Integer.parseInt(data[5])));
 			update(shifts.get(shifts.size()-1),1);
 			fin.close();
+			this.mainFrame.setTitle("DoorDash Data Tracker v"+Main.versionId+ " -"+this.userFirstName + " "+this.userLastName + " "+this.year);
+			this.fdPane.setVisible(true);
+			updateRestoreFile();
 		}
 		catch(Exception e) {
 		}
 	}
-	
+	private void updateRestoreFile() {
+		try {
+			PrintWriter fout = new PrintWriter(RESTORE_FILE); 
+			fout.println(this.userFirstName+this.userLastName+this.year+".user");
+			fout.close();
+		}
+		catch(Exception e) {
+			
+		}
+	}
 	private void save() {
 		try {
-			PrintWriter fout = new PrintWriter(SAVE_FILE);
+			PrintWriter fout = new PrintWriter(this.userFirstName+this.userLastName+this.year+".user");
+			fout.println(this.userFirstName);
+			fout.println(this.userLastName);
+			fout.println(this.state);
+			fout.println(this.year);
 			for(Shift s: this.shifts) {
 				fout.println(s.getDate());
 				fout.println(s.getStartTime());
@@ -705,7 +828,7 @@ public class Main implements ActionListener,FocusListener{
 				fout.println(s.getEndMileage());
 			}
 			fout.close();
-			
+			updateRestoreFile();
 		}
 		catch(Exception e) {
 			
@@ -723,13 +846,21 @@ public class Main implements ActionListener,FocusListener{
 		// TODO Auto-generated method stub
 		if(e.getSource() instanceof JTextField) {
 			if(((JTextField)e.getSource()).getName().equals("yearTextField")) {
-				System.out.println("yearTextField lost focus");
+				String date = ((JTextField)e.getSource()).getText();
+				if(date.matches("[0-9][0-9][0-9][0-9]")) {
+					this.newFormFields.set(3, ((JTextField)e.getSource()).getText());
+					((JTextField)e.getSource()).setForeground(Color.BLACK);
+				}
+				else {
+					((JTextField)e.getSource()).setForeground(Color.RED);
+				}
+				
 			}
 			else if(((JTextField)e.getSource()).getName().equals("firstNameTextField")) {
-				System.out.println("firstNameTextField lost focus");
+				this.newFormFields.set(0, ((JTextField)e.getSource()).getText());
 			}
 			else if(((JTextField)e.getSource()).getName().equals("lastNameTextField")) {
-				System.out.println("lastNameTextField lost focus");
+				this.newFormFields.set(1, ((JTextField)e.getSource()).getText());
 			}
 		}
 	}

@@ -73,7 +73,7 @@ public class Shift implements Comparable<Shift> {
 		data = this.endTime.split(":");
 		endHours = Integer.parseInt(data[0]);
 		endMins = Integer.parseInt(data[1].substring(0,data[1].length()-2));
-		if(!morningEvening.equalsIgnoreCase(data[1].substring(data[1].length()-2,data[1].length())))endHours += 12;
+		if(!morningEvening.equalsIgnoreCase(data[1].substring(data[1].length()-2,data[1].length())) && endHours - startHours < 0) endHours += 12;
 		else if(endHours == startHours || endHours<startHours)endHours += 24;
 		return ((endHours - startHours)*60)+(endMins - startMins);
 	}
