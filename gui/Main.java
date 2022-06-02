@@ -675,7 +675,11 @@ public class Main implements ActionListener,FocusListener{
 		lastNameTextField.addFocusListener(this);
 		
 		//State Panel Config
-		String[] states = {"","OR","WA"};
+		String[] states = {"","AL","AK","AZ","AR","CA","CO","CT","DE","FL",
+						   "GA","HI","ID","IL","IN","IA","KS","KY","LA","ME",
+						   "MD","MA","MI","MN","MS","MO","MT","NE","NV","NH",
+						   "NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI",
+						   "SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"};		
 		JLabel stateLabel = new JLabel("State");
 		JComboBox<String>stateComboBox = new JComboBox<String>(states);
 		stateComboBox.setSelectedIndex(0);
